@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Job Application Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Libraries for file processing, PDF generation, and animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.16/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            color: #f5f5f7;
+        }
+        .apple-card {
+            background-color: #1d1d1f;
+            border-radius: 1.5rem;
+            padding: 1.5rem; /* Adjusted padding for mobile */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        @media (min-width: 768px) {
+            .apple-card {
+                padding: 2rem;
+            }
+        }
+        .nav-button {
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            transition: all 0.3s ease;
+            color: #86868b;
+            font-weight: 500;
+            flex-shrink: 0; /* Prevent buttons from shrinking */
+        }
+        .nav-button.active {
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+        }
+        .nav-button:not(.active):hover {
+            background-color: #2c2c2e;
+        }
+        .prose-custom {
+            color: #d2d2d7;
+        }
+        .prose-custom ul > li {
+            padding-left: 1.75em;
+            position: relative;
+        }
+        .prose-custom ul > li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #2997ff;
+            font-weight: 600;
+        }
+        .prose-custom a {
+            color: #2997ff;
+            text-decoration: none;
+        }
+        .prose-custom a:hover {
+            text-decoration: underline;
+        }
+        #resume-preview-pdf-container canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .accordion-header {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .gsap-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        /* Custom scrollbar for webkit browsers */
+        .apple-scroll::-webkit-scrollbar {
+            display: none;
+        }
+        .apple-scroll {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Hide scrollbar for job description */
+        #job-description::-webkit-scrollbar {
+            display: none;
+        }
+        #job-description {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body>
+    <div id="home-page" class="container mx-auto p-4 md:p-8 text-center overflow-hidden">
+        <header class="my-16 md:my-24 gsap-reveal">
+             <h1 class="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-gray-200 via-white to-gray-400">
+                Your Personal Career Copilot
+            </h1>
+            <p class="text-gray-400 mt-6 text-lg md:text-xl max-w-3xl mx-auto">
+                Stop guessing. Start impressing. Upload your resume and a job description to get AI-powered insights, tailored application materials, and the confidence to land your next role.
+            </p>
+            <button id="get-started-btn" class="mt-8 bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transform hover:scale-105 transition-all duration-300 text-lg">
+                Get Started
+            </button>
+        </header>
+
+        <div class="my-24 md:my-32">
+            <img src="https://e0.pxfuel.com/wallpapers/402/946/desktop-wallpaper-black-tech-geometric-minimal-motion-background-video-seamless-looping-animation-ultra-motion-background-minimal-black-futuristic.jpg" alt="App dashboard preview" class="w-full h-[50vh] object-cover rounded-2xl shadow-2xl shadow-blue-500/10 gsap-reveal">
+        </div>
+
+        <section class="my-24 md:my-32">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-12 gsap-reveal">From Application to Offer Letter.</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                <div class="apple-card gsap-reveal">
+                    <h3 class="text-xl font-semibold text-white mb-2">1. Tailor & Perfect</h3>
+                    <p class="text-gray-400">Instantly generate application materials that are perfectly aligned with the job description. Create tailored messages, cover letters, and even an improved, ATS-friendly version of your resume.</p>
+                </div>
+                 <div class="apple-card gsap-reveal">
+                    <h3 class="text-xl font-semibold text-white mb-2">2. Analyze & Prepare</h3>
+                    <p class="text-gray-400">Go beyond the basics. Get a detailed analysis of your skill gaps, research the company's culture and mission, and explore potential career paths—all powered by AI.</p>
+                </div>
+                 <div class="apple-card gsap-reveal">
+                    <h3 class="text-xl font-semibold text-white mb-2">3. Practice & Impress</h3>
+                    <p class="text-gray-400">Walk into your interview with confidence. Use the mock interview simulator to practice your answers, get instant feedback, and learn from expert-level model answers.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="my-24 md:my-32 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div class="text-left gsap-reveal">
+                <h2 class="text-4xl md:text-5xl font-bold text-white mb-6">Built for Confidence.</h2>
+                <p class="text-gray-400 text-lg">The job market is tough. This tool is your unfair advantage. It's more than just a resume builder; it's a comprehensive assistant designed to give you clarity and confidence at every step of the application process. Feel prepared, professional, and ready to make a lasting impression.</p>
+            </div>
+            <div>
+                 <img src="https://w0.peakpx.com/wallpaper/30/671/HD-wallpaper-phoenix-ai-art-dark-background-digital-art-phoenix-ai.jpg" alt="Abstract feature graphic" class="rounded-2xl shadow-2xl shadow-purple-500/10 gsap-reveal">
+            </div>
+        </section>
+
+        <footer class="my-16 md:my-24 gsap-reveal">
+             <h2 class="text-4xl md:text-5xl font-bold text-white">Ready to land your dream job?</h2>
+             <button id="get-started-btn-footer" class="mt-8 bg-blue-600 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-700 transform hover:scale-105 transition-all duration-300 text-lg">
+                Start Now
+            </button>
+        </footer>
+
+    </div>
+
+    <div id="app-page" class="container mx-auto p-4 md:p-8" style="display: none;">
+        <main class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Input Section -->
+            <div class="lg:col-span-2 apple-card">
+                <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
+                    <h2 class="text-3xl font-semibold text-white">Your Details</h2>
+                    <button id="back-to-home-btn" class="text-sm text-blue-400 hover:underline">Home</button>
+                </div>
+                
+                <!-- Resume Input -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Your Resume</label>
+                    <div id="resume-display" class="p-4 border-2 border-dashed border-gray-600 rounded-xl bg-black mb-2 flex justify-between items-center" style="display: none;">
+                        <p id="resume-filename" class="text-sm font-medium text-blue-400 truncate"></p>
+                        <button id="preview-resume-btn" class="text-sm text-blue-400 hover:underline ml-4 flex-shrink-0">Preview</button>
+                    </div>
+                    <input type="file" id="resume-upload" accept=".txt,.pdf,.docx" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600 cursor-pointer"/>
+                    <button id="clear-resume-btn" class="mt-2 text-sm text-red-500 hover:underline" style="display: none;">Clear Resume</button>
+                </div>
+
+                <!-- Job Description Input -->
+                <div class="mb-4">
+                    <label for="job-description" class="block text-sm font-medium text-gray-400 mb-2">Job Description</label>
+                    <textarea id="job-description" rows="6" class="w-full p-3 bg-black border border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-white placeholder-gray-500" placeholder="Paste the job description here..."></textarea>
+                </div>
+                
+                <!-- Instructions Input -->
+                <div class="mb-4">
+                    <label for="instructions" class="block text-sm font-medium text-gray-400 mb-2">Custom Instructions (Optional)</label>
+                    <textarea id="instructions" rows="3" class="w-full p-3 bg-black border border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-white placeholder-gray-500" placeholder="e.g., Emphasize my project management skills."></textarea>
+                </div>
+
+                <!-- Experience and Tone -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label for="experience" class="block text-sm font-medium text-gray-400 mb-2">Years of Experience</label>
+                        <select id="experience" class="w-full p-3 bg-black border border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-white">
+                            <option value="Fresher">Fresher</option>
+                            <option value="1-3">1-3 years</option>
+                            <option value="3-5">3-5 years</option>
+                            <option value="5-10">5-10 years</option>
+                            <option value="10+">10+ years</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="tone" class="block text-sm font-medium text-gray-400 mb-2">Message Tone</label>
+                        <select id="tone" class="w-full p-3 bg-black border border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-white">
+                            <option>Professional</option>
+                            <option>Conversational</option>
+                            <option>Casual</option>
+                            <option value="other">Other...</option>
+                        </select>
+                        <input type="text" id="custom-tone" class="w-full mt-2 p-3 bg-black border border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 text-white placeholder-gray-500" placeholder="Enter custom tone" style="display: none;">
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transform hover:scale-105 transition-all duration-300">
+                    Generate
+                </button>
+            </div>
+
+            <!-- Output Section -->
+            <div id="output-container" class="lg:col-span-3" style="display: none;">
+                <div id="loading-spinner" class="text-center py-8" style="display: none;">
+                    <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-500 mx-auto"></div>
+                    <p class="mt-4 text-gray-400 text-lg">Analyzing and generating content...</p>
+                </div>
+                
+                <div id="results-wrapper" style="display: none;">
+                     <!-- Horizontal Navigation -->
+                    <nav class="p-2 bg-black rounded-full border border-gray-700 mb-8">
+                        <div class="flex flex-wrap sm:flex-nowrap justify-center sm:justify-start gap-2 sm:overflow-x-auto apple-scroll">
+                            <button class="nav-button active" data-tab="drafted-message">Message</button>
+                            <button class="nav-button" data-tab="follow-up-email">Follow-up ✨</button>
+                            <button class="nav-button" data-tab="company-research">Research ✨</button>
+                            <button class="nav-button" data-tab="skill-gap">Skill Gap ✨</button>
+                            <button class="nav-button" data-tab="career-path">Career Path ✨</button>
+                            <button class="nav-button" data-tab="interview-practice">Practice ✨</button>
+                            <button class="nav-button" data-tab="salary-coach">Salary Coach ✨</button>
+                            <button class="nav-button" data-tab="90-day-plan">90-Day Plan ✨</button>
+                            <button class="nav-button" data-tab="interview-topics">Topics</button>
+                            <button class="nav-button" data-tab="resume-suggestions">Suggestions</button>
+                            <button class="nav-button" data-tab="modified-resume">Resume</button>
+                            <button class="nav-button" data-tab="resources">Resources</button>
+                        </div>
+                    </nav>
+
+                    <!-- Content Area -->
+                    <div>
+                        <div id="drafted-message-content" class="tab-content"></div>
+                        <div id="follow-up-email-content" class="tab-content" style="display: none;"></div>
+                        <div id="company-research-content" class="tab-content" style="display: none;"></div>
+                        <div id="skill-gap-content" class="tab-content" style="display: none;"></div>
+                        <div id="career-path-content" class="tab-content" style="display: none;"></div>
+                        <div id="interview-practice-content" class="tab-content" style="display: none;"></div>
+                        <div id="salary-coach-content" class="tab-content" style="display: none;"></div>
+                        <div id="90-day-plan-content" class="tab-content" style="display: none;"></div>
+                        <div id="interview-topics-content" class="tab-content" style="display: none;"></div>
+                        <div id="resume-suggestions-content" class="tab-content" style="display: none;"></div>
+                        <div id="modified-resume-content" class="tab-content" style="display: none;"></div>
+                        <div id="resources-content" class="tab-content" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Resume Preview Modal -->
+    <div id="resume-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50" style="display: none;">
+        <div class="relative w-full max-w-3xl bg-[#1d1d1f] border border-gray-700 rounded-2xl shadow-xl">
+            <div class="p-6">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                    <h3 class="text-xl leading-6 font-medium text-white">Resume Preview</h3>
+                    <button id="close-modal-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="resume-preview-container" class="mt-2 max-h-[70vh] overflow-y-auto apple-scroll">
+                    <pre id="resume-preview-text" class="text-left text-sm text-gray-300 whitespace-pre-wrap bg-black p-4 rounded-xl"></pre>
+                    <div id="resume-preview-pdf-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.worker.min.js`;
+            const { jsPDF } = window.jspdf;
+            gsap.registerPlugin(ScrollTrigger);
+
+            // DOM Elements
+            const homePage = document.getElementById('home-page');
+            const appPage = document.getElementById('app-page');
+            const getStartedBtn = document.getElementById('get-started-btn');
+            const getStartedBtnFooter = document.getElementById('get-started-btn-footer');
+            const backToHomeBtn = document.getElementById('back-to-home-btn');
+            const resumeUpload = document.getElementById('resume-upload');
+            const resumeDisplay = document.getElementById('resume-display');
+            const resumeFilename = document.getElementById('resume-filename');
+            const clearResumeBtn = document.getElementById('clear-resume-btn');
+            const previewResumeBtn = document.getElementById('preview-resume-btn');
+            const resumeModal = document.getElementById('resume-modal');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const resumePreviewText = document.getElementById('resume-preview-text');
+            const resumePreviewPdfContainer = document.getElementById('resume-preview-pdf-container');
+            const jobDescription = document.getElementById('job-description');
+            const instructions = document.getElementById('instructions');
+            const experience = document.getElementById('experience');
+            const tone = document.getElementById('tone');
+            const customTone = document.getElementById('custom-tone');
+            const generateBtn = document.getElementById('generate-btn');
+            const outputContainer = document.getElementById('output-container');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const resultsWrapper = document.getElementById('results-wrapper');
+            const navButtons = document.querySelectorAll('.nav-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            // State
+            let resumeContent = '';
+            let resumeFileBuffer = null;
+            let resumeFileType = '';
+            let generatedResumeData = null;
+            let improvedResumeData = null; // State for the resume improved in the skill-gap section
+            let generatedInterviewTopics = [];
+            let skillGapData = null;
+            let generalSuggestions = [];
+            let interviewHistory = [];
+            let quizData = [];
+            let userQuizAnswers = {};
+            let currentQuizQuestionIndex = 0;
+
+            // GSAP Animations
+            function animateElements() {
+                gsap.utils.toArray('.gsap-reveal').forEach(el => {
+                    gsap.fromTo(el, { opacity: 0, y: 30 }, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 1,
+                        ease: 'power3.out',
+                        scrollTrigger: {
+                            trigger: el,
+                            start: 'top 90%',
+                            toggleActions: 'play none none none'
+                        }
+                    });
+                });
+            }
+            animateElements();
+
+            // Page Transitions
+            const goToApp = () => {
+                gsap.to(homePage, { opacity: 0, duration: 0.5, onComplete: () => {
+                    homePage.style.display = 'none';
+                    appPage.style.display = 'block';
+                    gsap.fromTo(appPage, { opacity: 0 }, { opacity: 1, duration: 0.5 });
+                }});
+            };
+            getStartedBtn.addEventListener('click', goToApp);
+            getStartedBtnFooter.addEventListener('click', goToApp);
+
+            backToHomeBtn.addEventListener('click', () => {
+                 gsap.to(appPage, { opacity: 0, duration: 0.5, onComplete: () => {
+                    appPage.style.display = 'none';
+                    homePage.style.display = 'block';
+                    gsap.fromTo(homePage, { opacity: 0 }, { opacity: 1, duration: 0.5 });
+                }});
+            });
+
+
+            // Load resume from localStorage
+            const savedResume = localStorage.getItem('userResume');
+            const savedFilename = localStorage.getItem('resumeFilename');
+            const savedFileType = localStorage.getItem('resumeFileType');
+            if (savedResume && savedFilename && savedFileType) {
+                resumeContent = savedResume;
+                resumeFileType = savedFileType;
+                resumeFilename.textContent = savedFilename;
+                resumeDisplay.style.display = 'flex';
+                resumeUpload.style.display = 'none';
+                clearResumeBtn.style.display = 'block';
+            }
+
+            // Handle resume upload
+            resumeUpload.addEventListener('change', async (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                resumeFilename.textContent = 'Processing...';
+                resumeDisplay.style.display = 'flex';
+                
+                try {
+                    const arrayBuffer = await file.arrayBuffer();
+                    resumeFileBuffer = arrayBuffer;
+                    resumeFileType = file.type;
+                    let textContent = '';
+
+                    if (file.type === 'application/pdf') {
+                        const typedarray = new Uint8Array(arrayBuffer);
+                        const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const text = await page.getTextContent();
+                            textContent += text.items.map(s => s.str).join(' ') + '\n';
+                        }
+                    } else if (file.name.endsWith('.docx')) {
+                        const result = await mammoth.extractRawText({ arrayBuffer });
+                        textContent = result.value;
+                    } else {
+                        textContent = new TextDecoder().decode(arrayBuffer);
+                    }
+                    updateResumeState(textContent, file.name, file.type);
+                } catch (error) {
+                    console.error("Error processing file:", error);
+                    resumeFilename.textContent = "Failed to process file.";
+                    // Replaced alert with a console log for better user experience in some environments
+                    console.error("Could not process the uploaded file. Please try a different format (.txt, .pdf, .docx).");
+                }
+            });
+
+            function updateResumeState(content, name, type) {
+                resumeContent = content;
+                resumeFilename.textContent = name;
+                resumeFileType = type;
+                localStorage.setItem('userResume', resumeContent);
+                localStorage.setItem('resumeFilename', name);
+                localStorage.setItem('resumeFileType', type);
+                resumeUpload.style.display = 'none';
+                clearResumeBtn.style.display = 'block';
+            }
+
+            // Clear resume
+            clearResumeBtn.addEventListener('click', () => {
+                resumeContent = '';
+                resumeFileBuffer = null;
+                resumeFileType = '';
+                localStorage.removeItem('userResume');
+                localStorage.removeItem('resumeFilename');
+                localStorage.removeItem('resumeFileType');
+                resumeDisplay.style.display = 'none';
+                resumeUpload.style.display = 'block';
+                resumeUpload.value = '';
+                clearResumeBtn.style.display = 'none';
+            });
+
+            // Resume Modal Logic
+            previewResumeBtn.addEventListener('click', async () => {
+                resumePreviewText.style.display = 'none';
+                resumePreviewPdfContainer.innerHTML = '';
+                
+                if (resumeFileType === 'application/pdf' && resumeFileBuffer) {
+                    const typedarray = new Uint8Array(resumeFileBuffer);
+                    const pdf = await pdfjsLib.getDocument({data: typedarray}).promise;
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const canvas = document.createElement('canvas');
+                        resumePreviewPdfContainer.appendChild(canvas);
+                        const page = await pdf.getPage(i);
+                        const viewport = page.getViewport({ scale: 1.5 });
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    }
+                } else {
+                    resumePreviewText.textContent = resumeContent;
+                    resumePreviewText.style.display = 'block';
+                }
+                resumeModal.style.display = 'flex';
+            });
+            closeModalBtn.addEventListener('click', () => resumeModal.style.display = 'none');
+            window.addEventListener('click', (event) => {
+                if (event.target == resumeModal) resumeModal.style.display = 'none';
+            });
+
+            // Custom Tone Logic
+            tone.addEventListener('change', () => {
+                customTone.style.display = tone.value === 'other' ? 'block' : 'none';
+            });
+
+            // Navigation Logic
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    tabContents.forEach(content => content.style.display = 'none');
+                    document.getElementById(`${button.dataset.tab}-content`).style.display = 'block';
+                });
+            });
+            
+            // Function to clean and parse JSON from API response
+            function cleanAndParseJson(text) {
+                // Remove markdown fences and trim whitespace
+                let cleanText = text.trim().replace(/^```json/, '').replace(/```$/, '').trim();
+                
+                // Find the first '{' and the last '}' to extract the JSON object
+                const startIndex = cleanText.indexOf('{');
+                const endIndex = cleanText.lastIndexOf('}');
+                if (startIndex === -1 || endIndex === -1) {
+                    throw new Error("No valid JSON object found in the response.");
+                }
+                let jsonString = cleanText.substring(startIndex, endIndex + 1);
+                
+                // Attempt to fix common JSON errors from LLMs before parsing
+                // 1. Fix trailing commas in objects and arrays (e.g., [1, 2,])
+                jsonString = jsonString.replace(/,\s*([}\]])/g, "$1");
+
+                // 2. Fix extra quotes before a comma (e.g., "value"", "next_value")
+                jsonString = jsonString.replace(/"\s*"(,)/g, '"$1');
+                
+                try {
+                    return JSON.parse(jsonString);
+                } catch (error) {
+                    console.error("JSON Parsing Error:", error, "Attempting to parse:", jsonString);
+                    throw new Error("The AI returned a response that could not be parsed as valid JSON.");
+                }
+            }
+
+            // Generate button click
+            generateBtn.addEventListener('click', async () => {
+                if (!resumeContent || !jobDescription.value) {
+                    // Using console.error instead of alert
+                    console.error('Please upload your resume and provide the job description.');
+                    return;
+                }
+
+                outputContainer.style.display = 'block';
+                loadingSpinner.style.display = 'block';
+                resultsWrapper.style.display = 'none';
+
+                let finalTone = tone.value === 'other' ? customTone.value : tone.value;
+
+                const prompt = `
+                    You are an expert career coach. Based on the provided resume, job description, and preferences, generate a comprehensive response as a single, valid JSON object.
+
+                    **User Resume:**
+                    ${resumeContent}
+
+                    **Job Description:**
+                    ${jobDescription.value}
+
+                    **User Preferences:**
+                    - Years of Experience: ${experience.value || 'Not specified'}
+                    - Desired Message Tone: ${finalTone}
+                    - Custom Instructions: ${instructions.value || 'None'}
+
+                    **Instructions:**
+                    Generate a JSON object with keys: "modifiedResume", "draftedMessage", "resumeSuggestions", "interviewTopics", "resources", "skillGapAnalysis", "companyResearch", "careerPath", "commonMistakes".
+                    1.  **modifiedResume**: A JSON object for an ATS-friendly resume. Structure it with keys: "name", "email", "phone", "linkedin", "summary" (a 3-4 sentence paragraph), "experience" (an array of objects, each with "company", "role", "dates", and "duties" as an array of strings), "education" (an array of objects with "degree", "university", "dates"), and "skills" (an array of strings).
+                    2.  **draftedMessage**: A ${finalTone} message to send to the recruiter. Output as a single block of HTML text with paragraphs. Do not include markdown like '**'.
+                    3.  **resumeSuggestions**: An array of clean strings, each being a specific, actionable suggestion. Do not include markdown like '**'.
+                    4.  **interviewTopics**: An array of JSON objects, where each object has a "category" (e.g., "Behavioral Questions") and "topics" (an array of strings).
+                    5.  **resources**: An array of JSON objects, each with "title" and "url".
+                    6.  **skillGapAnalysis**: A JSON object with two keys: "matchingSkills" (an array of strings) and "gapSkills" (an array of objects, each with "skill" and "suggestion" keys).
+                    7.  **companyResearch**: A JSON object with keys: "companyProfile", "reviews", "news", "achievements", "awards", "glassdoor", "salaryReviews".
+                    8.  **careerPath**: A JSON object with two keys: "nextSteps" (an array of strings representing potential future roles) and "developmentPlan" (an array of objects, each with "skill" and "action" keys for long-term growth).
+                    9.  **commonMistakes**: An array of strings describing common interview mistakes for this type of role.
+                `;
+
+                try {
+                    const responseText = await callGeminiAPI(prompt, true);
+                    let parsedResponse;
+                    try {
+                        parsedResponse = cleanAndParseJson(responseText);
+                        generatedResumeData = parsedResponse.modifiedResume;
+                        generatedInterviewTopics = parsedResponse.interviewTopics;
+                        skillGapData = parsedResponse.skillGapAnalysis;
+                        generalSuggestions = parsedResponse.resumeSuggestions;
+                    } catch (e) {
+                        console.error("JSON Parsing Error:", e, "Response was:", responseText);
+                        throw new Error("The AI returned a response in an unexpected format. Please try again.");
+                    }
+                    
+                    renderAllContent(parsedResponse);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    const errorBlock = `<div class="apple-card text-center p-8"><h3 class="text-xl font-semibold text-red-500">Generation Failed</h3><p class="text-gray-400 mt-2">${error.message}</p></div>`;
+                    document.getElementById('drafted-message-content').innerHTML = errorBlock;
+                } finally {
+                    loadingSpinner.style.display = 'none';
+                    resultsWrapper.style.display = 'block';
+                    gsap.from(resultsWrapper, {opacity: 0, y: 20, duration: 0.5});
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    navButtons[0].classList.add('active');
+                    tabContents.forEach((content, index) => {
+                        content.style.display = index === 0 ? 'block' : 'none';
+                    });
+                }
+            });
+
+            function renderAllContent(data) {
+                document.getElementById('drafted-message-content').innerHTML = createContentBlock('Your Drafted Message', `<div class="prose-custom">${data.draftedMessage}</div>`, 'drafted-message');
+                document.getElementById('follow-up-email-content').innerHTML = createFollowUpEmailBlock();
+                renderCompanyResearch(data.companyResearch);
+                renderSkillGapAnalysis(data.skillGapAnalysis);
+                renderCareerPath(data.careerPath);
+                document.getElementById('interview-practice-content').innerHTML = createInterviewPracticeBlock();
+                renderSalaryCoachBlock();
+                render90DayPlanBlock();
+                renderInterviewTopics(data.interviewTopics);
+                const resumeHTML = `<ul class="space-y-2">${data.resumeSuggestions.map(s => `<li>${s}</li>`).join('')}</ul>`;
+                const mistakesHTML = `<ul class="space-y-2">${data.commonMistakes.map(s => `<li>${s}</li>`).join('')}</ul>`;
+                document.getElementById('resume-suggestions-content').innerHTML = createContentBlock('Resume Suggestions', `<div class="prose-custom">${resumeHTML}</div>`, 'resume-suggestions') + createContentBlock('Common Interview Mistakes', `<div class="prose-custom">${mistakesHTML}</div>`, 'common-mistakes');
+                const resumePreviewHTML = generateResumeHTML(data.modifiedResume);
+                document.getElementById('modified-resume-content').innerHTML = createContentBlockWithDownload('Modified Resume', resumePreviewHTML, 'modified-resume');
+                const resourcesHTML = `<div class="space-y-3">${data.resources.map(r => `<a href="${r.url}" target="_blank" rel="noopener noreferrer" class="flex items-center p-4 bg-black rounded-xl hover:bg-gray-800 transition-colors duration-200 group"><div class="flex-shrink-0 mr-4"><svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg></div><div class="prose-custom"><p class="font-semibold text-white">${r.title}</p></div></a>`).join('')}</div>`;
+                document.getElementById('resources-content').innerHTML = createContentBlock('Helpful Resources', resourcesHTML, 'resources');
+            }
+
+            // --- Interview Practice & Quiz Logic ---
+            function createInterviewPracticeBlock() {
+                return `
+                    <div class="apple-card">
+                        <div id="interview-practice-container">
+                             <div class="flex justify-end mb-4">
+                                <button id="switch-practice-mode-btn" class="text-sm text-blue-400 hover:underline">Switch to Technical Quiz</button>
+                            </div>
+                            <div id="mock-interview-view">
+                                <h3 class="text-2xl font-semibold text-white mb-4">Mock Interview</h3>
+                                <button id="start-mock-interview-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition">Start Mock Interview ✨</button>
+                            </div>
+                            <div id="quiz-view" style="display: none;">
+                                 <h3 class="text-2xl font-semibold text-white mb-4">Technical Quiz</h3>
+                                <button id="start-quiz-btn" class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-purple-700 transition">Take Technical Quiz ✨</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            outputContainer.addEventListener('click', async (event) => {
+                const targetId = event.target.id;
+
+                if(targetId === 'switch-practice-mode-btn'){
+                    const mockView = document.getElementById('mock-interview-view');
+                    const quizView = document.getElementById('quiz-view');
+                    const switchBtn = document.getElementById('switch-practice-mode-btn');
+
+                    if(mockView.style.display !== 'none'){
+                        mockView.style.display = 'none';
+                        quizView.style.display = 'block';
+                        switchBtn.textContent = 'Switch to Mock Interview';
+                    } else {
+                        mockView.style.display = 'block';
+                        quizView.style.display = 'none';
+                        switchBtn.textContent = 'Switch to Technical Quiz';
+                    }
+                }
+
+                // Start Mock Interview
+                if (targetId === 'start-mock-interview-btn') {
+                    interviewHistory = [];
+                    const allTopics = generatedInterviewTopics.flatMap(cat => cat.topics);
+                    const firstQuestion = allTopics[0] || "Tell me about yourself.";
+                    renderMockInterviewUI(firstQuestion);
+                }
+
+                // Send Answer in Mock Interview
+                if (targetId === 'send-answer-btn') {
+                    const answerInput = document.getElementById('interview-answer');
+                    const answer = answerInput.value;
+                    if (!answer) { console.error('Please provide an answer.'); return; }
+                    
+                    answerInput.value = '';
+                    answerInput.disabled = true;
+                    
+                    const chatBox = document.getElementById('mock-interview-chatbox');
+                    chatBox.innerHTML += `<div class="text-right"><div class="inline-block bg-blue-600 text-white p-3 rounded-2xl rounded-br-none">${answer}</div></div>`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+
+                    const spinner = document.createElement('div');
+                    spinner.innerHTML = `<div class="inline-block bg-gray-700 p-3 rounded-2xl rounded-bl-none"><div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div></div>`;
+                    chatBox.appendChild(spinner);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+
+                    interviewHistory.push({role: "user", parts: [{text: answer}]});
+
+                    const followUpPrompt = `You are "Alex", a friendly and professional AI interviewer. Your goal is to conduct a natural, conversational mock interview for a candidate applying for a job with this description: "${jobDescription.value}".
+                    Here is the interview history so far: ${JSON.stringify(interviewHistory)}
+
+                    Based on the user's last answer, do the following:
+                    1.  Provide brief, encouraging, and specific feedback (1-2 sentences).
+                    2.  Then, ask a relevant follow-up question in a natural, conversational tone. For example, instead of just stating the question, you could say "That's an interesting approach. Could you elaborate on..." or "Thanks for sharing that. Building on that, my next question is...".
+
+                    Return your response as a single, valid JSON object with two keys: "feedback" (your feedback as a string) and "nextQuestion" (your next question as a string).`;
+
+                    try {
+                        const responseJSON = await callGeminiAPI(followUpPrompt, true);
+                        const response = cleanAndParseJson(responseJSON);
+                        
+                        interviewHistory.push({role: "model", parts: [{text: `Feedback: ${response.feedback} Next Question: ${response.nextQuestion}`}]});
+                        
+                        chatBox.removeChild(spinner);
+                        chatBox.innerHTML += `<div><div class="inline-block bg-gray-700 text-white p-3 rounded-2xl rounded-bl-none">${response.feedback}<br><br><strong>${response.nextQuestion}</strong></div></div>`;
+                        answerInput.disabled = false;
+                        answerInput.focus();
+                        chatBox.scrollTop = chatBox.scrollHeight;
+                    } catch (e) {
+                        chatBox.removeChild(spinner);
+                        chatBox.innerHTML += `<div class="text-red-500">Could not get a response. Please try again.</div>`;
+                        answerInput.disabled = false;
+                        console.error(e);
+                    }
+                }
+
+                // Start Technical Quiz
+                if (targetId === 'start-quiz-btn') {
+                    const container = document.getElementById('interview-practice-container');
+                    container.innerHTML = `<div class="text-center py-8"><div class="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mx-auto"></div><p class="mt-4 text-gray-400 text-lg">Generating your technical quiz...</p></div>`;
+                    
+                    const quizPrompt = `You are an expert in creating technical assessments. Based on the following job description, generate a 5-question multiple-choice quiz to test a candidate's technical knowledge.
+                        **Job Description:**
+                        ${jobDescription.value}
+                        **Instructions:**
+                        Return a single, valid JSON object. The object should have a single key "quiz" which is an array of 5 question objects. Each question object must have the following keys:
+                        - "question": A string for the question text.
+                        - "options": An array of 4 strings representing the multiple-choice options.
+                        - "correctAnswer": A string that exactly matches one of the provided options.
+                        Ensure the questions are relevant to the core technical skills mentioned in the job description.`;
+
+                    try {
+                        const responseJSON = await callGeminiAPI(quizPrompt, true);
+                        const parsedResponse = cleanAndParseJson(responseJSON);
+                        quizData = parsedResponse.quiz;
+                        userQuizAnswers = {};
+                        currentQuizQuestionIndex = 0;
+                        if (!quizData || quizData.length === 0) throw new Error("No quiz data was generated.");
+                        renderQuizQuestion(currentQuizQuestionIndex);
+                    } catch (e) {
+                        container.innerHTML = `<div class="text-red-500 text-center p-4"><h3>Failed to generate quiz</h3><p>${e.message}</p></div>`;
+                        console.error(e);
+                    }
+                }
+
+                // Handle Quiz Option Selection
+                const selectedBtn = event.target.closest('.quiz-option-btn');
+                if (selectedBtn && !selectedBtn.disabled) {
+                    const selectedAnswerText = selectedBtn.innerText.substring(2).trim();
+                    userQuizAnswers[currentQuizQuestionIndex] = selectedAnswerText;
+
+                    const optionButtons = document.querySelectorAll('#quiz-options .quiz-option-btn');
+                    optionButtons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.classList.remove('border-blue-500', 'bg-gray-700');
+                        btn.classList.add('border-transparent');
+                    });
+
+                    selectedBtn.classList.remove('border-transparent');
+                    selectedBtn.classList.add('border-blue-500', 'bg-gray-700');
+                    
+                    document.getElementById('next-question-btn').style.display = 'block';
+                }
+
+
+                // Handle Next Quiz Question
+                if (targetId === 'next-question-btn') {
+                    currentQuizQuestionIndex++;
+                    if (currentQuizQuestionIndex < quizData.length) {
+                        renderQuizQuestion(currentQuizQuestionIndex);
+                    } else {
+                        renderQuizResults();
+                    }
+                }
+                
+                // Handle Restarting Practice Suite
+                if (targetId === 'restart-practice-btn') {
+                    document.getElementById('interview-practice-content').innerHTML = createInterviewPracticeBlock();
+                }
+
+                // Generate Salary Insights
+                if (targetId === 'generate-salary-btn') {
+                    const container = document.getElementById('salary-coach-results');
+                    container.innerHTML = `<div class="text-center py-4"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500 mx-auto"></div></div>`;
+                    const salaryPrompt = `You are a senior career and salary negotiation coach. Based on the job description for a role, and considering the user has ${experience.value || 'an unspecified number of'} years of experience, provide a salary analysis. The job is likely located in a major tech hub in the USA. Provide your response as a JSON object with three keys: "salaryRange" (a string like '$X,000 - $Y,000 USD per year'), "talkingPoints" (an array of strings with key negotiation arguments), and "script" (a sample conversational script as a single HTML block to start the salary conversation).
+                    Job Description: ${jobDescription.value}`;
+                    try {
+                        const responseJSON = await callGeminiAPI(salaryPrompt, true);
+                        const salaryData = cleanAndParseJson(responseJSON);
+                        renderSalaryCoachResults(salaryData);
+                    } catch(e) {
+                        container.innerHTML = `<p class="text-red-500">Could not generate salary insights. Please try again.</p>`;
+                        console.error(e);
+                    }
+                }
+
+                // Generate 90-Day Plan
+                if (targetId === 'generate-90-day-plan-btn') {
+                    const container = document.getElementById('90-day-plan-results');
+                    container.innerHTML = `<div class="text-center py-4"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mx-auto"></div></div>`;
+                    const planPrompt = `You are a strategic business consultant. Create a high-level 30-60-90 day plan for a new hire in the role described below. This plan should be something a candidate could discuss in an interview to show proactivity. Focus on learning, contributing, and taking initiative.
+                        Job Description: ${jobDescription.value}
+                        Instructions: Return a single, valid JSON object with three keys: "first30" (an array of strings for the first 30 days), "days31to60" (an array of strings), and "days61to90" (an array of strings).`;
+                    try {
+                        const responseJSON = await callGeminiAPI(planPrompt, true);
+                        const planData = cleanAndParseJson(responseJSON);
+                        render90DayPlanResults(planData);
+                    } catch(e) {
+                        container.innerHTML = `<p class="text-red-500">Could not generate the 90-day plan. Please try again.</p>`;
+                        console.error(e);
+                    }
+                }
+            });
+
+            function renderMockInterviewUI(firstQuestion) {
+                const container = document.getElementById('interview-practice-container');
+                interviewHistory.push({role: "model", parts: [{text: firstQuestion}]});
+                container.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-white mb-4">Mock Interview in Progress...</h3>
+                    <div id="mock-interview-chatbox" class="h-96 overflow-y-auto space-y-4 p-4 bg-black rounded-xl border border-gray-700 mb-4 apple-scroll">
+                        <div><div class="inline-block bg-gray-700 text-white p-3 rounded-2xl rounded-bl-none">${firstQuestion}</div></div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 md:gap-4">
+                        <input type="text" id="interview-answer" class="flex-grow p-3 bg-black border border-gray-600 rounded-xl text-white placeholder-gray-500" placeholder="Type your answer...">
+                        <button id="send-answer-btn" class="bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition mt-2 sm:mt-0">Send</button>
+                    </div>
+                `;
+            }
+            
+            function renderQuizQuestion(index) {
+                const container = document.getElementById('interview-practice-container');
+                const questionData = quizData[index];
+                const progress = ((index + 1) / quizData.length) * 100;
+
+                container.innerHTML = `
+                    <h3 class="text-2xl font-semibold text-white mb-2">Technical Quiz</h3>
+                    <p class="text-sm text-gray-400 mb-4">Question ${index + 1} of ${quizData.length}</p>
+                    <div class="w-full bg-gray-700 rounded-full h-2.5 mb-4">
+                        <div class="bg-purple-600 h-2.5 rounded-full" style="width: ${progress}%"></div>
+                    </div>
+                    <div class="bg-black p-4 rounded-xl mb-6">
+                        <p class="font-semibold text-lg text-gray-200">${questionData.question}</p>
+                    </div>
+                    <div id="quiz-options" class="space-y-3">
+                        ${questionData.options.map((option, i) => `
+                            <button class="quiz-option-btn w-full text-left p-4 bg-gray-800 rounded-xl hover:bg-gray-700 transition border-2 border-transparent">
+                                <span class="font-mono text-blue-400 mr-3">${String.fromCharCode(65 + i)}</span>
+                                ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="mt-6">
+                        <button id="next-question-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition" style="display: none;">Next</button>
+                    </div>
+                `;
+            }
+
+            function renderQuizResults() {
+                let score = 0;
+                quizData.forEach((q, index) => {
+                    if (userQuizAnswers[index] === q.correctAnswer) {
+                        score++;
+                    }
+                });
+
+                const container = document.getElementById('interview-practice-container');
+                container.innerHTML = `
+                    <h3 class="text-3xl font-bold text-white mb-4 text-center">Quiz Complete!</h3>
+                    <p class="text-center text-xl text-gray-300 mb-6">You scored <span class="font-bold text-purple-400">${score}</span> out of <span class="font-bold text-purple-400">${quizData.length}</span></p>
+                    <div class="space-y-4 max-h-96 overflow-y-auto apple-scroll p-1">
+                        ${quizData.map((q, index) => {
+                            const userAnswer = userQuizAnswers[index];
+                            const isCorrect = userAnswer === q.correctAnswer;
+                            return `
+                                <div class="p-4 rounded-xl ${isCorrect ? 'bg-green-900/30 border border-green-500/50' : 'bg-red-900/30 border border-red-500/50'}">
+                                    <p class="font-semibold mb-2">${index + 1}. ${q.question}</p>
+                                    <p class="text-sm ${isCorrect ? 'text-green-300' : 'text-red-300'}">Your answer: ${userAnswer || 'Not answered'}</p>
+                                    ${!isCorrect ? `<p class="text-sm text-green-300">Correct answer: ${q.correctAnswer}</p>` : ''}
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <button id="restart-practice-btn" class="mt-8 w-full bg-gray-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-gray-700 transition">Back to Practice Suite</button>
+                `;
+            }
+            
+            function renderInterviewTopics(topicsData) {
+                if (!topicsData || topicsData.length === 0) {
+                    document.getElementById('interview-topics-content').innerHTML = createContentBlock('Interview Topics', '<p>No topics generated.</p>', 'interview-topics');
+                    return;
+                }
+                const topicsHTML = `
+                    <div class="space-y-2">
+                        ${topicsData.map((cat, index) => `
+                            <div class="border border-gray-700 rounded-xl">
+                                <div class="accordion-header flex justify-between items-center p-4 bg-gray-800/50 hover:bg-gray-800">
+                                    <h4 class="font-semibold text-blue-400">${cat.category}</h4>
+                                    <svg class="w-5 h-5 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </div>
+                                <div class="accordion-content">
+                                    <ul class="p-4 border-t border-gray-700 space-y-2 text-sm">
+                                        ${cat.topics.map(topic => `<li class="text-gray-300">${topic}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                document.getElementById('interview-topics-content').innerHTML = createContentBlock('Interview Topics', topicsHTML, 'interview-topics');
+            }
+
+            // --- New Feature: Follow-up Email ---
+            function createFollowUpEmailBlock() {
+                return `
+                    <div class="apple-card">
+                        <h3 class="text-2xl font-semibold text-white mb-4">Generate Follow-up Email</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="interviewer-name" class="block text-sm font-medium text-gray-400">Interviewer Name(s)</label>
+                                <input type="text" id="interviewer-name" class="w-full mt-1 p-2 bg-black border border-gray-600 rounded-xl text-white placeholder-gray-500" placeholder="e.g., Jane Doe">
+                            </div>
+                            <div>
+                                <label for="interview-highlights" class="block text-sm font-medium text-gray-400">Key Discussion Points</label>
+                                <textarea id="interview-highlights" rows="4" class="w-full mt-1 p-2 bg-black border border-gray-600 rounded-xl text-white placeholder-gray-500" placeholder="e.g., We talked about the upcoming product launch..."></textarea>
+                            </div>
+                            <button id="generate-follow-up-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition">Generate Follow-up ✨</button>
+                        </div>
+                        <div id="follow-up-spinner" class="text-center py-4" style="display: none;">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                        </div>
+                        <div id="follow-up-result" class="mt-4"></div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('follow-up-email-content').addEventListener('click', async (event) => {
+                if (event.target.id === 'generate-follow-up-btn') {
+                    const interviewer = document.getElementById('interviewer-name').value;
+                    const highlights = document.getElementById('interview-highlights').value;
+                    if (!highlights) { console.error('Please provide some highlights from the interview.'); return; }
+
+                    document.getElementById('follow-up-spinner').style.display = 'block';
+                    document.getElementById('follow-up-result').innerHTML = '';
+                    
+                    const followUpPrompt = `Generate a professional and warm follow-up email after a job interview.
+                    My Name: ${generatedResumeData.name}
+                    Job Title: ${generatedResumeData.experience[0].role}
+                    Interviewer(s): ${interviewer || 'the hiring team'}
+                    Key points from our discussion: ${highlights}
+                    
+                    Draft the email. It should be concise, reiterate my interest in the role, and thank them for their time. Output as a single block of clean, well-formatted HTML text with paragraphs. Do not wrap it in a JSON object or markdown code fences.`;
+
+                    try {
+                        const email = await callGeminiAPI(followUpPrompt);
+                        document.getElementById('follow-up-result').innerHTML = createContentBlock('Drafted Follow-up Email', `<div class="prose-custom">${email}</div>`, 'follow-up-email-text');
+                    } catch (e) {
+                        document.getElementById('follow-up-result').innerHTML = `<p class="text-red-500">Could not generate email. Please try again.</p>`;
+                    } finally {
+                        document.getElementById('follow-up-spinner').style.display = 'none';
+                    }
+                }
+            });
+            
+            // --- New Feature: Company Research ---
+            function renderCompanyResearch(researchData) {
+                const researchContentEl = document.getElementById('company-research-content');
+                if (!researchData) {
+                    researchContentEl.innerHTML = createContentBlock('Company Research', '<p>Could not generate company research.</p>', 'company-research');
+                    return;
+                }
+
+                if (!researchData.companyProfile || researchData.companyProfile.toLowerCase().includes("does not point to a specific company")) {
+                    const noCompanyHTML = `
+                        <div class="text-center py-8 text-gray-500">
+                            <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 10l.01.01" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-white">No Company Found</h3>
+                            <p class="mt-1 text-sm text-gray-400">Could not identify a specific company from the job description.</p>
+                        </div>
+                    `;
+                    researchContentEl.innerHTML = createContentBlock('Company Research', noCompanyHTML, 'company-research-no-data');
+                    return;
+                }
+
+
+                const researchHTML = `
+                    <div class="space-y-2">
+                        ${Object.entries(researchData).map(([key, value]) => {
+                            if(!value) return ''; // Don't render if value is empty
+                            const title = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                            return `
+                                <div class="border border-gray-700 rounded-xl">
+                                    <div class="accordion-header flex justify-between items-center p-4 bg-gray-800/50 hover:bg-gray-800">
+                                        <h4 class="font-semibold text-blue-400">${title}</h4>
+                                        <svg class="w-5 h-5 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                    </div>
+                                    <div class="accordion-content">
+                                        <div class="p-4 border-t border-gray-700 text-sm text-gray-300 prose-custom">
+                                            ${value}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+
+                researchContentEl.innerHTML = createContentBlock('Company Research', researchHTML, 'company-research-accordion');
+            }
+
+            // --- New Feature: Skill Gap Analysis ---
+            function renderSkillGapAnalysis(gapData) {
+                 if (!gapData) {
+                    document.getElementById('skill-gap-content').innerHTML = createContentBlock('Skill Gap Analysis', '<p>Could not generate skill gap analysis.</p>', 'skill-gap');
+                    return;
+                }
+                const gapHTML = `
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-lg text-green-400">Matching Skills</h4>
+                            <p class="text-sm text-gray-400 mb-2">These are your strengths! Be sure to highlight them.</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${gapData.matchingSkills.map(skill => `<span class="bg-green-900/50 text-green-300 text-sm font-medium px-3 py-1 rounded-full">${skill}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg text-red-400">Skill Gaps & Suggestions</h4>
+                             <p class="text-sm text-gray-400 mb-2">Consider these areas for development.</p>
+                            <div class="space-y-3 mt-2">
+                                ${gapData.gapSkills.map(item => `
+                                    <div class="p-3 bg-red-900/20 border border-red-500/30 rounded-xl">
+                                        <p class="font-semibold text-red-300">${item.skill}</p>
+                                        <p class="text-sm text-gray-400 mt-1">${item.suggestion}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="pt-6 border-t border-gray-700">
+                             <button id="fix-skill-gap-btn" class="w-full bg-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-purple-700 transition">Fix Skill Gaps & Modify Resume ✨</button>
+                        </div>
+                        <div id="skill-gap-spinner" class="text-center py-4" style="display: none;">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
+                        </div>
+                        <div id="fixed-resume-container" class="mt-4"></div>
+                    </div>
+                `;
+                document.getElementById('skill-gap-content').innerHTML = createContentBlock('Skill Gap Analysis', gapHTML, 'skill-gap');
+            }
+            
+            document.getElementById('skill-gap-content').addEventListener('click', async (event) => {
+                if (event.target.id === 'fix-skill-gap-btn') {
+                    const spinner = document.getElementById('skill-gap-spinner');
+                    spinner.style.display = 'block';
+                    document.getElementById('fixed-resume-container').innerHTML = '';
+
+                    const fixResumePrompt = `
+                        You are an expert resume writer. Your task is to revise a user's resume to better align with a job description, specifically by addressing the identified skill gaps and incorporating general best practices.
+                        
+                        **Original Full Resume:**
+                        ${resumeContent}
+                        
+                        **General Suggestions for Improvement:**
+                        ${generalSuggestions.map(s => `- ${s}`).join('\n')}
+
+                        **Identified Skill Gaps and Suggestions:**
+                        ${skillGapData.gapSkills.map(item => `- ${item.skill}: ${item.suggestion}`).join('\n')}
+
+                        **Job Description:**
+                        ${jobDescription.value}
+
+                        **Instructions:**
+                        Synthesize all the provided information to generate a new, improved JSON object for the resume. The structure must be identical to the original: "name", "email", "phone", "linkedin", "summary", "experience" (array of objects), "education" (array of objects), and "skills" (array of strings).
+                        - **Revise the 'summary'** to be more compelling and directly address the key requirements of the job, weaving in keywords related to the skill gaps.
+                        - **Revise the 'duties'** within the 'experience' section. Rephrase existing duties to highlight transferable skills and quantify achievements where possible, as suggested.
+                        - **Update the 'skills'** section. Add skills that are reasonably inferred or suggested by the gap analysis and general suggestions (e.g., if the gap is 'React' and the user knows JavaScript, you can add 'React (learning)').
+                        - Maintain a professional and ATS-friendly format.
+                    `;
+
+                    try {
+                        const newResumeJSON = await callGeminiAPI(fixResumePrompt, true);
+                        const newResumeData = cleanAndParseJson(newResumeJSON);
+                        improvedResumeData = newResumeData; // Store the improved resume data
+                        const newResumeHTML = generateResumeHTML(newResumeData);
+                        document.getElementById('fixed-resume-container').innerHTML = createContentBlockWithDownload('AI-Improved Resume', newResumeHTML, 'improved-resume');
+                    } catch (e) {
+                         document.getElementById('fixed-resume-container').innerHTML = `<p class="text-red-500">Could not generate the improved resume. Please try again.</p>`;
+                         console.error(e);
+                    } finally {
+                        spinner.style.display = 'none';
+                    }
+                }
+            });
+            
+            // --- New Feature: Career Path ---
+            function renderCareerPath(pathData) {
+                if (!pathData) {
+                    document.getElementById('career-path-content').innerHTML = createContentBlock('Career Path Explorer', '<p>Could not generate career path.</p>', 'career-path');
+                    return;
+                }
+                const pathHTML = `
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-lg text-blue-400">Potential Next Steps</h4>
+                            <p class="text-sm text-gray-400 mb-3">Based on your current trajectory, here are some roles you could aim for next:</p>
+                            <div class="flex flex-wrap gap-3">
+                                ${pathData.nextSteps.map(step => `<div class="bg-blue-900/50 text-blue-300 font-medium px-4 py-2 rounded-lg">${step}</div>`).join('')}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg text-purple-400">Long-Term Development Plan</h4>
+                             <p class="text-sm text-gray-400 mb-3">Focus on these areas to accelerate your growth:</p>
+                            <div class="space-y-3 mt-2">
+                                ${pathData.developmentPlan.map(item => `
+                                    <div class="p-3 bg-purple-900/20 border border-purple-500/30 rounded-xl">
+                                        <p class="font-semibold text-purple-300">${item.skill}</p>
+                                        <p class="text-sm text-gray-400 mt-1">${item.action}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('career-path-content').innerHTML = createContentBlock('Career Path Explorer', pathHTML, 'career-path');
+            }
+
+            // --- New Feature: Salary Coach ---
+            function renderSalaryCoachBlock() {
+                const html = `
+                    <div class="apple-card text-center">
+                        <h3 class="text-2xl font-semibold text-white mb-4">Salary Negotiation Coach</h3>
+                        <p class="text-gray-400 mb-6">Get AI-powered salary insights, talking points, and negotiation scripts based on the job description and your experience level.</p>
+                        <button id="generate-salary-btn" class="bg-green-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-green-700 transition">✨ Generate Salary Insights</button>
+                        <div id="salary-coach-results" class="mt-6 text-left"></div>
+                    </div>
+                `;
+                document.getElementById('salary-coach-content').innerHTML = html;
+            }
+
+            function renderSalaryCoachResults(data) {
+                const container = document.getElementById('salary-coach-results');
+                const html = `
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-lg text-green-400">Estimated Salary Range</h4>
+                            <p class="text-2xl font-bold text-white mt-1">${data.salaryRange}</p>
+                            <p class="text-xs text-gray-500">*This is an estimate based on the provided data and should be used as a starting point for your own research.</p>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg text-green-400">Key Negotiation Talking Points</h4>
+                            <ul class="list-disc list-inside mt-2 space-y-2 text-gray-300">
+                                ${data.talkingPoints.map(point => `<li>${point}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg text-green-400">Sample Negotiation Script</h4>
+                            <div class="mt-2 p-4 bg-black rounded-xl border border-gray-700 prose-custom">${data.script}</div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+            }
+
+            // --- New Feature: 90-Day Plan ---
+            function render90DayPlanBlock() {
+                const html = `
+                    <div class="apple-card text-center">
+                        <h3 class="text-2xl font-semibold text-white mb-4">Proactive 90-Day Plan</h3>
+                        <p class="text-gray-400 mb-6">Generate a high-level 30-60-90 day plan to show your future employer that you're a strategic, forward-thinking candidate.</p>
+                        <button id="generate-90-day-plan-btn" class="bg-yellow-600 text-black font-bold py-3 px-6 rounded-xl hover:bg-yellow-700 transition">✨ Generate 90-Day Plan</button>
+                        <div id="90-day-plan-results" class="mt-6 text-left"></div>
+                    </div>
+                `;
+                document.getElementById('90-day-plan-content').innerHTML = html;
+            }
+
+            function render90DayPlanResults(data) {
+                const container = document.getElementById('90-day-plan-results');
+                const html = `
+                    <div class="space-y-2">
+                        <!-- 30 Days -->
+                        <div class="border border-gray-700 rounded-xl">
+                            <div class="accordion-header flex justify-between items-center p-4 bg-gray-800/50 hover:bg-gray-800">
+                                <h4 class="font-semibold text-yellow-400">First 30 Days: Focus on Learning</h4>
+                                <svg class="w-5 h-5 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                            <div class="accordion-content">
+                                <ul class="p-4 border-t border-gray-700 space-y-2 text-sm text-gray-300">
+                                    ${data.first30.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- 60 Days -->
+                        <div class="border border-gray-700 rounded-xl">
+                            <div class="accordion-header flex justify-between items-center p-4 bg-gray-800/50 hover:bg-gray-800">
+                                <h4 class="font-semibold text-yellow-400">Days 31-60: Focus on Contributing</h4>
+                                <svg class="w-5 h-5 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                            <div class="accordion-content">
+                                <ul class="p-4 border-t border-gray-700 space-y-2 text-sm text-gray-300">
+                                    ${data.days31to60.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- 90 Days -->
+                        <div class="border border-gray-700 rounded-xl">
+                            <div class="accordion-header flex justify-between items-center p-4 bg-gray-800/50 hover:bg-gray-800">
+                                <h4 class="font-semibold text-yellow-400">Days 61-90: Focus on Initiative</h4>
+                                <svg class="w-5 h-5 transform transition-transform text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                            <div class="accordion-content">
+                                <ul class="p-4 border-t border-gray-700 space-y-2 text-sm text-gray-300">
+                                    ${data.days61to90.map(item => `<li>${item}</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = html;
+                 // Open the first accordion by default
+                if(container.querySelector('.accordion-header')) {
+                    const firstHeader = container.querySelector('.accordion-header');
+                    const firstContent = firstHeader.nextElementSibling;
+                    const firstIcon = firstHeader.querySelector('svg');
+                    firstContent.style.maxHeight = firstContent.scrollHeight + "px";
+                    if(firstIcon) firstIcon.classList.add('rotate-180');
+                }
+            }
+
+            // *** CONSOLIDATED EVENT LISTENER FOR RESULTS WRAPPER ***
+            resultsWrapper.addEventListener('click', function(event) {
+                const target = event.target;
+
+                // --- Accordion Logic ---
+                const accordionHeader = target.closest('.accordion-header');
+                if (accordionHeader) {
+                    const content = accordionHeader.nextElementSibling;
+                    const icon = accordionHeader.querySelector('svg');
+                    if (content && content.classList.contains('accordion-content')) {
+                        if (content.style.maxHeight) {
+                            content.style.maxHeight = null;
+                            if (icon) icon.classList.remove('rotate-180');
+                        } else {
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            if (icon) icon.classList.add('rotate-180');
+                        }
+                    }
+                }
+
+                // --- Copy Button Logic ---
+                const copyBtn = target.closest('.copy-btn');
+                if (copyBtn) {
+                    const contentId = copyBtn.dataset.target;
+                    const contentElement = document.getElementById(contentId);
+                    if (contentElement) {
+                        const textToCopy = contentElement.innerText;
+                        const textarea = document.createElement('textarea');
+                        textarea.value = textToCopy;
+                        textarea.style.position = 'fixed';
+                        textarea.style.left = '-9999px'; // Move off-screen
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        try {
+                            document.execCommand('copy');
+                            copyBtn.innerHTML = 'Copied!';
+                            setTimeout(() => {
+                                copyBtn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy`;
+                            }, 2000);
+                        } catch (err) {
+                            console.error('Failed to copy text: ', err);
+                        }
+                        document.body.removeChild(textarea);
+                    }
+                }
+
+                // --- Download Button Logic ---
+                const downloadButton = target.closest('.download-btn');
+                if (downloadButton) {
+                    let dataToUse = null;
+                    const card = downloadButton.closest('.apple-card');
+                    
+                    if (card.querySelector('#improved-resume-text')) {
+                        dataToUse = improvedResumeData;
+                    } else if (card.querySelector('#modified-resume-text')) {
+                        dataToUse = generatedResumeData;
+                    }
+                    
+                    if (dataToUse) {
+                        generatePdf(dataToUse);
+                    } else {
+                        console.error("Could not find the correct resume data to download.");
+                    }
+                }
+            });
+
+
+            function generateResumeHTML(resumeData) {
+                if (!resumeData) return '<p>Could not generate resume preview.</p>';
+                return `
+                    <div class="text-left p-2 prose-custom">
+                        <h2 class="text-2xl font-bold text-center text-white">${resumeData.name}</h2>
+                        <p class="text-center text-sm text-gray-400 border-b border-gray-700 pb-2">${resumeData.email} | ${resumeData.phone} | ${resumeData.linkedin}</p>
+                        <h3 class="font-bold text-blue-400 mt-4 pb-1 text-sm uppercase tracking-wider">Summary</h3>
+                        <p class="mt-1 text-sm border-l-2 border-blue-800 pl-2">${resumeData.summary}</p>
+                        <h3 class="font-bold text-blue-400 mt-4 pb-1 text-sm uppercase tracking-wider">Experience</h3>
+                        ${resumeData.experience.map(exp => `
+                            <div class="mt-2 border-l-2 border-blue-800 pl-2">
+                                <div class="flex justify-between items-baseline">
+                                    <p class="font-semibold text-white">${exp.role}</p>
+                                    <p class="text-xs font-mono text-gray-400">${exp.dates}</p>
+                                </div>
+                                <p class="text-sm italic text-gray-400">${exp.company}</p>
+                                <ul class="list-disc list-inside mt-1 text-sm space-y-1">
+                                    ${exp.duties.map(duty => `<li>${duty}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `).join('')}
+                        <h3 class="font-bold text-blue-400 mt-4 pb-1 text-sm uppercase tracking-wider">Education</h3>
+                        ${resumeData.education.map(edu => `
+                            <div class="mt-2 border-l-2 border-blue-800 pl-2">
+                                 <div class="flex justify-between items-baseline">
+                                    <p class="font-semibold text-white">${edu.degree}</p>
+                                    <p class="text-xs font-mono text-gray-400">${edu.dates}</p>
+                                </div>
+                                <p class="text-sm italic text-gray-400">${edu.university}</p>
+                            </div>
+                        `).join('')}
+                        <h3 class="font-bold text-blue-400 mt-4 pb-1 text-sm uppercase tracking-wider">Skills</h3>
+                        <p class="mt-1 text-sm border-l-2 border-blue-800 pl-2">${resumeData.skills.join(', ')}</p>
+                    </div>
+                `;
+            }
+
+            function generatePdf(data) {
+                const doc = new jsPDF();
+                let y = 15;
+                const margin = 15;
+                const maxWidth = doc.internal.pageSize.getWidth() - margin * 2;
+
+                doc.setFontSize(22).setFont("helvetica", "bold");
+                doc.text(data.name, doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+                y += 8;
+
+                doc.setFontSize(10).setFont("helvetica", "normal");
+                doc.text(`${data.email} | ${data.phone} | ${data.linkedin}`, doc.internal.pageSize.getWidth() / 2, y, { align: 'center' });
+                y += 10;
+                
+                doc.setFontSize(14).setFont("helvetica", "bold");
+                doc.text("Summary", margin, y);
+                y += 6;
+                doc.setFontSize(11).setFont("helvetica", "normal");
+                const summaryLines = doc.splitTextToSize(data.summary, maxWidth);
+                doc.text(summaryLines, margin, y);
+                y += summaryLines.length * 5 + 5;
+
+                doc.setFontSize(14).setFont("helvetica", "bold");
+                doc.text("Experience", margin, y);
+                y += 6;
+                data.experience.forEach(exp => {
+                    doc.setFontSize(12).setFont("helvetica", "bold");
+                    doc.text(exp.role, margin, y);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(exp.dates, doc.internal.pageSize.getWidth() - margin, y, { align: 'right' });
+                    y += 5;
+                    doc.setFontSize(11).setFont("helvetica", "italic");
+                    doc.text(exp.company, margin, y);
+                    y += 6;
+                    doc.setFont("helvetica", "normal");
+                    exp.duties.forEach(duty => {
+                        const dutyLines = doc.splitTextToSize(`• ${duty}`, maxWidth - 3);
+                        doc.text(dutyLines, margin + 3, y);
+                        y += dutyLines.length * 5;
+                        if (y > 280) { doc.addPage(); y = 15; }
+                    });
+                    y += 4;
+                });
+                
+                doc.setFontSize(14).setFont("helvetica", "bold");
+                doc.text("Education", margin, y);
+                y += 6;
+                data.education.forEach(edu => {
+                    doc.setFontSize(12).setFont("helvetica", "bold");
+                    doc.text(edu.degree, margin, y);
+                    doc.setFont("helvetica", "normal");
+                    doc.text(edu.dates, doc.internal.pageSize.getWidth() - margin, y, { align: 'right' });
+                    y += 5;
+                    doc.setFontSize(11).setFont("helvetica", "italic");
+                    doc.text(edu.university, margin, y);
+                    y += 8;
+                });
+
+                doc.setFontSize(14).setFont("helvetica", "bold");
+                doc.text("Skills", margin, y);
+                y += 6;
+                doc.setFontSize(11).setFont("helvetica", "normal");
+                const skillsLines = doc.splitTextToSize(data.skills.join(', '), maxWidth);
+                doc.text(skillsLines, margin, y);
+
+                doc.save(`${data.name.replace(' ', '_')}_Resume.pdf`);
+            }
+            
+            function createContentBlockWithDownload(title, content, contentId) {
+                return `
+                    <div class="apple-card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-white">${title}</h3>
+                            <button class="download-btn flex items-center gap-2 text-sm text-white bg-blue-600 hover:bg-blue-700 font-medium py-2 px-3 rounded-xl transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                Download PDF
+                            </button>
+                        </div>
+                        <div id="${contentId}-text" class="bg-black p-4 rounded-xl">${content}</div>
+                    </div>
+                `;
+            }
+            
+            function createContentBlock(title, content, contentId) {
+                return `
+                    <div class="apple-card mt-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-white">${title}</h3>
+                            <button class="copy-btn flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 font-medium p-2 rounded-xl hover:bg-gray-800 transition" data-target="${contentId}-text">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg> Copy
+                            </button>
+                        </div>
+                        <div id="${contentId}-text" class="bg-black p-4 rounded-xl">${content}</div>
+                    </div>
+                `;
+            };
+
+            async function callGeminiAPI(prompt, expectJson = false) {
+                const apiKey = "AIzaSyDDrf9x6heE-nXVYljXenZI2kAMV75Fofk"; // Leave empty
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                };
+                
+                if (expectJson) {
+                    payload.generationConfig = { responseMimeType: "application/json" };
+                }
+                
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`API call failed with status: ${response.status}. ${errorBody}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.candidates || result.candidates.length === 0) {
+                           console.error("API Response was empty or blocked:", result);
+                           const blockReason = result.promptFeedback?.blockReason || 'Unknown safety reason';
+                           throw new Error(`The request was blocked. Reason: ${blockReason}. Please modify your input and try again.`);
+                }
+                
+                if (result.candidates[0].content && result.candidates[0].content.parts) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("Invalid response structure:", result);
+                    throw new Error('Invalid response structure from API.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
