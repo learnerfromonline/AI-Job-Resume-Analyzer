@@ -1417,7 +1417,9 @@
             async function callGeminiAPI(prompt, expectJson = false) {
                 // const apiKey = "AIzaSyDDrf9x6heE-nXVYljXenZI2kAMV75Fofk"; // Leave empty
                 const apiKey = "AIzaSyBPPyC228o8-zxbB5jYzWpBh3SZhu1JIF8"; // Updated 05/01/26
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+               // const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;  // Update the Url
+
 
                 const payload = {
                     contents: [{ parts: [{ text: prompt }] }],
@@ -1457,4 +1459,5 @@
     </script>
 </body>
 </html>
+
 
